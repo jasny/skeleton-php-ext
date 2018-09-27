@@ -1,0 +1,43 @@
+version: '{branch}.{build}'
+
+branches:
+  only:
+    - master
+
+image:
+  - Visual Studio 2015
+
+environment:
+  PHP_SDK_BINARY_TOOLS_URL: https://windows.php.net/downloads/php-sdk
+  PHP_SDK_BINARY_TOOLS_PACKAGE: php-sdk-binary-tools-20110915.zip
+  PHP_DEPS_URL: https://windows.php.net/downloads/php-sdk
+
+  matrix:
+    - PHP_REL: 7.0
+      ARCHITECTURE: x64
+      ARCH: amd64
+      ZTS_STATE: disable
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      PHP_BUILD_CRT: vc14
+      PHP_DEPS_PACKAGE: deps-7.0-vc14-x64.7z
+
+# Uncomment the following two lines to use RDP to debug "stuck" builds
+#init:
+#  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+    
+install:
+  - cmd: cinst wget
+  - cmd: >-
+         "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %ARCH%
+
+build_script:
+  - .appveyor\build.cmd
+
+test_script:
+  - .appveyor\test.cmd
+
+# Uncomment the following two lines to use RDP on finish, blocking
+# until the "lock" file on the VM desktop is deleted.
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+

@@ -1,0 +1,31 @@
+language: php
+php:
+  - 7.0
+  - 7.1
+  - 7.2
+  - nightly
+
+matrix:
+  allow_failures:
+    - php: 7.0
+    - php: nightly
+
+
+branches:
+  only:
+  - master
+
+before_install:
+  # Install external libraries
+
+install:
+  - phpize
+  - ./configure
+  - make
+
+before_script:
+  make install
+
+script:
+  make test
+
