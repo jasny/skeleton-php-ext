@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | Skeleton PHP extension                                               |
   +----------------------------------------------------------------------+
-  | Copyright (c) 2018 Jasny                                             |
+  | Copyright (c) 2018 NAME                                              |
   +----------------------------------------------------------------------+
   | Permission is hereby granted, free of charge, to any person          |
   | obtaining a copy of this software and associated documentation files |
@@ -24,7 +24,7 @@
   | CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE     |
   | SOFTWARE.                                                            |
   +----------------------------------------------------------------------+
-  | Author: Arnold Daniels <arnold@jasny.net>                            |
+  | Author: NAME <EMAIL@EXAMPLE.COM>                                     |
   +----------------------------------------------------------------------+
 */
 
