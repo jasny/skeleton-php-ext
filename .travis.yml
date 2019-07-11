@@ -1,22 +1,22 @@
+env:
+  EXTNAME: skeleton
+
 language: php
 php:
-  - 7.0
-  - 7.1
   - 7.2
+  - 7.3
+  - 7.4snapshot
   - nightly
 
 matrix:
   allow_failures:
-    - php: 7.0
     - php: nightly
-
 
 branches:
   only:
   - master
-
-before_install:
-  # Install external libraries
+  - travis
+  - /^v\d+\.\d+\.\d+$/
 
 install:
   - phpize
@@ -28,4 +28,27 @@ before_script:
 
 script:
   make test
+
+after_failure:
+  - |
+    for FILE in $(find tests -name '*.diff'); do
+      echo $FILE
+      cat FILE
+      echo
+    done
+
+before_deploy:
+  - pecl package
+  - export RELEASE_PACKAGE=$(ls "$EXTNAME"-*.tgz)
+
+deploy:
+  provider: releases
+  api_key:
+    secure: "Your encrypted GitHub API key"
+  file: "$RELEASE_PACKAGE"
+  skip_cleanup: true
+  name: "$TRAVIS_TAG"
+  prerelease: true
+  on:
+    tags: true
 

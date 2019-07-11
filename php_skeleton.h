@@ -44,11 +44,10 @@
 
 static PHP_MINFO_FUNCTION(skeleton);
 
-/* TODO: Declare all functions of the extension */
+/* Declare all functions and classes of the extension */
 static PHP_FUNCTION(skeleton_nop);
 
 extern zend_module_entry skeleton_module_entry;
-#define phpext_skeleton_ptr &skeleton_module_entry
 
 #endif
 

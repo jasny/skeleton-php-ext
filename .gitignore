@@ -28,3 +28,5 @@ modules/
 php_test_results_*.txt
 tests/*
 !tests/*.phpt
+*~
+configure.ac

@@ -38,12 +38,10 @@
 #include "zend_exceptions.h"
 #include "ext/standard/info.h"
 
-/* TODO: Add any includes to external libraries */
-
 #if HAVE_SKELETON
 
-/* TODO: Add all functions. (Keep PHP_FE_END as last element) */
-static const zend_function_entry skeleton_functions[] = {
+/* Add all functions. (Keep PHP_FE_END as last element) */
+static const zend_function_entry functions[] = {
     PHP_FE(skeleton_nop, NULL)
     PHP_FE_END
 };
@@ -51,7 +49,7 @@ static const zend_function_entry skeleton_functions[] = {
 zend_module_entry skeleton_module_entry = {
     STANDARD_MODULE_HEADER,
     PHP_SKELETON_EXTNAME,
-    skeleton_functions,
+    functions,
     NULL,
     NULL,
     NULL,
@@ -65,14 +63,14 @@ zend_module_entry skeleton_module_entry = {
 ZEND_GET_MODULE(skeleton)
 #endif
 
-/* TODO: Replace the example function for something better */
+/* Replace the example function with something better :) */
 PHP_FUNCTION(skeleton_nop)
 {
     zend_string *str;
 
-    if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "S", &str) == FAILURE) {
-        RETVAL_NULL();
-    }
+    ZEND_PARSE_PARAMETERS_START_EX(ZEND_PARSE_PARAMS_THROW, 1, 1)
+        Z_PARAM_STR(str)
+    ZEND_PARSE_PARAMETERS_END();
 
     RETVAL_STR(str);
 }

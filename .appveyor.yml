@@ -1,43 +1,123 @@
-version: '{branch}.{build}'
+# See https://github.com/sergeyklay/php-appveyor
 
 branches:
   only:
-    - master
-
-image:
-  - Visual Studio 2015
+  - master
+  - appveyor
+  - w32
 
 environment:
-  PHP_SDK_BINARY_TOOLS_URL: https://windows.php.net/downloads/php-sdk
-  PHP_SDK_BINARY_TOOLS_PACKAGE: php-sdk-binary-tools-20110915.zip
-  PHP_DEPS_URL: https://windows.php.net/downloads/php-sdk
+  EXTNAME: skeleton
 
   matrix:
-    - PHP_REL: 7.0
-      ARCHITECTURE: x64
-      ARCH: amd64
-      ZTS_STATE: disable
+    - PHP_VERSION: 7.2
+      VC_VERSION: 15
+      BUILD_TYPE: Win32
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      PHP_BUILD_CRT: vc14
-      PHP_DEPS_PACKAGE: deps-7.0-vc14-x64.7z
 
-# Uncomment the following two lines to use RDP to debug "stuck" builds
-#init:
-#  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-    
+    - PHP_VERSION: 7.2
+      VC_VERSION: 15
+      BUILD_TYPE: nts-Win32
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+    - PHP_VERSION: 7.3
+      VC_VERSION: 15
+      BUILD_TYPE: Win32
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+    - PHP_VERSION: 7.3
+      VC_VERSION: 15
+      BUILD_TYPE: nts-Win32
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+  PHP_SDK_VERSION: 2.1.9
+  TEST_PHP_EXECUTABLE: C:\php\php.exe
+  NO_INTERACTION: 1
+  REPORT_EXIT_STATUS: 1
+
+matrix:
+  fast_finish: true
+
+cache:
+  - 'C:\Downloads -> .appveyor.yml'
+
+platform:
+  - x86
+  - x64
+
+init:
+  - ps: $DebugPreference = 'SilentlyContinue' # Continue
+  - ps: >-
+      if ($env:APPVEYOR_REPO_TAG -eq "true") {
+        Update-AppveyorBuild -Version "$($Env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
+      } else {
+        Update-AppveyorBuild -Version "${Env:APPVEYOR_REPO_BRANCH}-$($Env:APPVEYOR_REPO_COMMIT.Substring(0, 7))"
+      }
+
 install:
-  - cmd: cinst wget
-  - cmd: >-
-         "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %ARCH%
+  - ps: Import-Module .\.ci\php-appveyor.psm1
+
+  - ps: InstallPhpSdk     $Env:PHP_SDK_VERSION $Env:VC_VERSION $Env:PLATFORM
+  - ps: InstallPhp        $Env:PHP_VERSION $Env:BUILD_TYPE $Env:VC_VERSION $Env:PLATFORM
+  - ps: InstallPhpDevPack $Env:PHP_VERSION $Env:BUILD_TYPE $Env:VC_VERSION $Env:PLATFORM
 
 build_script:
-  - .appveyor\build.cmd
+  - ps: Import-Module .\.ci\appveyor.psm1
+  - ps: InitializeBuildVars
+  - cmd: '"%VSCOMNTOOLS%\VsDevCmd" -arch=%PLATFORM%'
+  - cmd: '"%VCVARSALL_FILE%" %ARCH%'
+  - cmd: C:\php-sdk\bin\phpsdk_setvars
+  - cmd: C:\php-devpack\phpize
+  - cmd: configure.bat --with-prefix=C:\php --with-php-build=C:\php-devpack --disable-all --enable-
+  - cmd: nmake 2> compile-errors.log 1> compile.log
+  - ps: InitializeReleaseVars
 
 test_script:
-  - .appveyor\test.cmd
+  - cmd: nmake test
 
-# Uncomment the following two lines to use RDP on finish, blocking
-# until the "lock" file on the VM desktop is deleted.
-#on_finish:
-#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+after_build:
+  - ps: Set-Location "${Env:APPVEYOR_BUILD_FOLDER}"
+  - ps: >-
+      PrepareReleasePackage `
+        -PhpVersion     $Env:PHP_VERSION `
+        -BuildType      $Env:BUILD_TYPE `
+        -Platform       $Env:PLATFORM `
+        -ConverMdToHtml $true `
+        -ReleaseFiles   "${Env:RELEASE_FOLDER}\php_${Env:EXTNAME}.dll",`
+                        "${Env:APPVEYOR_BUILD_FOLDER}\CREDITS",`
+                        "${Env:APPVEYOR_BUILD_FOLDER}\LICENSE"
 
+on_failure :
+  - ps: >-
+      If (Test-Path -Path "${Env:APPVEYOR_BUILD_FOLDER}\compile-errors.log") {
+        Get-Content -Path "${Env:APPVEYOR_BUILD_FOLDER}\compile-errors.log"
+      }
+
+      If (Test-Path -Path "${Env:APPVEYOR_BUILD_FOLDER}\compile.log") {
+        Get-Content -Path "${Env:APPVEYOR_BUILD_FOLDER}\compile.log"
+      }
+
+      Get-ChildItem "${Env:APPVEYOR_BUILD_FOLDER}\tests" -Recurse -Filter *.diff | Foreach-Object {
+        [Environment]::NewLine
+        Write-Output $_.FullName
+        Get-Content -Path $_.FullName
+      }
+
+artifacts:
+  - path: '.\$(RELEASE_ZIPBALL).zip'
+    name: '$(EXTNAME)'
+    type: zip
+
+deploy:
+  release: v$(appveyor_build_version)
+  description: 'v$(appveyor_build_version)'
+  provider: GitHub
+  auth_token:
+    secure: "Your encrypted Github token"
+  artifact: '$(RELEASE_ZIPBALL).zip'
+  draft: false
+  prerelease: true
+  force_update: true
+  on:
+    branch: master
+    APPVEYOR_REPO_TAG: true
