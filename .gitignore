@@ -19,6 +19,7 @@ mkinstalldirs
 run-tests.php
 Makefile
 Makefile.*
+!Makefile.frag
 libtool
 *~
 modules/
@@ -30,3 +31,5 @@ tests/*
 !tests/*.phpt
 *~
 configure.ac
+/cmake-*
+/run-php

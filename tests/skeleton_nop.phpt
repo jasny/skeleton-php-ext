@@ -1,7 +1,5 @@
 --TEST--
-TODO: Add tests for your functions
---SKIPIF--
-<?php if (!extension_loaded("skeleton")) print "skip"; ?>
+skeleton_nop basic test
 --FILE--
 <?php
 var_dump(skeleton_nop("Hello World"));

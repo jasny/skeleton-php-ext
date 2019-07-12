@@ -17,7 +17,7 @@ or confusing._
 
 ## Requirements
 
-* PHP 7.x
+* PHP 7.2+
 
 ## Installation
 
@@ -42,4 +42,3 @@ To try out the extension, you can run the following command
 Return the input (which must be a string).
 
     string skeleton_nop(string input)
-

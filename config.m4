@@ -2,6 +2,7 @@ dnl $Id$
 dnl config.m4 for extension skeleton
 
 sinclude(./autoconf/pecl.m4)
+sinclude(./autoconf/php-executable.m4)
 
 PECL_INIT([skeleton])
 
