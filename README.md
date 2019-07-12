@@ -43,11 +43,9 @@ Return the input (which must be a string).
 
 ## Customize
 
-### Change extension name
-
 To customize this skeleton for your own extension (e.g. `foo_bar`), edit the following files;
 
-#### config.m4 and config.w32
+### config.m4 and config.w32
 
 1. Do a search/replace for `HAVE_SKELETON, into `HAVE_FOO_BAR`.
 2. Do a search/replace for the word `skeleton` into `foo_bar`.
@@ -61,14 +59,14 @@ To customize this skeleton for your own extension (e.g. `foo_bar`), edit the fol
     ARG_ENABLE("foo-bar", "enable foo_bar", "no");
     ```
 
-#### php_skeleton.h
+### php_skeleton.h
 
 1. Rename the file using your extension name `php_foo_bar.h`.
 2. Do a search/replace for `PHP_SKELETON_H` into `PHP_FOO_BAR_H`.
 3. Do a search/replace for `HAVE_SKELETON` into `HAVE_FOO_BAR`.
 4. Change the `zend_module_entry` from `skeleton_module_entry` to `foo_bar_module_entry`
 
-#### skeleton.c
+### skeleton.c
 
 1. Rename the file using your extension name `foo_bar.c`.
 2. Do a search/replace for `PHP_SKELETON_H` into `PHP_FOO_BAR_H`.
@@ -76,7 +74,7 @@ To customize this skeleton for your own extension (e.g. `foo_bar`), edit the fol
 4. Change the `zend_module_entry` from `skeleton_module_entry` to `foo_bar_module_entry`
 5. In `ZEND_GET_MODULE` replace `skeleton` to `foo_bar`.
 
-#### .appveyor.yml and .travis.yml
+### .appveyor.yml and .travis.yml
 
 Change `skeleton` with your extension name for the `EXTNAME` env var.
 
@@ -85,7 +83,7 @@ env:
   EXTNAME: foo_bar
 ```
 
-##### Deployment
+#### Deployment
 
 Both Travis and AppVeyor are configured to automatically deploy the generated packages to
 [GitHub releases](https://help.github.com/en/articles/creating-releases). In order to do so, you need to specify a
@@ -98,11 +96,11 @@ GitHub API key.
 3. For Travis, install the Travis CLI (`gem install travis`) and use `travis encrypt` to encrypt the token. Replace
     `<your encrypted toke>` for the encrypted value in `.travis.yml`.
 
-#### package.xml
+### package.xml
 
 Edit the PECL package config if you wish to publish your extension to PECL. Otherwise delete this file.
 
-#### LICENSE
+### LICENSE
 
 Update the LICENSE with your (company) name and the year.
 
