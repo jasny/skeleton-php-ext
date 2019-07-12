@@ -9,6 +9,8 @@ Skeleton project for PHP C-extension.
 
 Includes Travis (Linux) and AppVeyor (Windows) configuration for continuous integration / platform tests.
 
+[> Create a new repository, using the skeleton php extension as template.](https://github.com/improved-php-library/skeleton-php-ext/generate)
+
 ---
 
 ## Requirements
