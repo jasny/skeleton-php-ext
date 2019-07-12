@@ -43,12 +43,11 @@ before_deploy:
 
 deploy:
   provider: releases
-  api_key:
-    secure: "Your encrypted GitHub API key"
+  auth_token:
+    secure: <your encrypted token>
   file: "$RELEASE_PACKAGE"
   skip_cleanup: true
   name: "$TRAVIS_TAG"
   prerelease: true
   on:
     tags: true
-

@@ -1,7 +1,7 @@
 // $Id$
 // vim:ft=javascript
 
-ARG_ENABLE("http-message", "enable skeleton", "no");
+ARG_ENABLE("skeleton", "enable skeleton", "no");
 
 if (PHP_SKELETON != "no") {
 	EXTENSION("skeleton", "skeleton.c");
