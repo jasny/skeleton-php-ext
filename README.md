@@ -85,7 +85,7 @@ env:
   EXTNAME: foo_bar
 ```
 
-**Deployment**
+##### Deployment
 
 Both Travis and AppVeyor are configured to automatically deploy the generated packages to
 [GitHub releases](https://help.github.com/en/articles/creating-releases). In order to do so, you need to specify a
