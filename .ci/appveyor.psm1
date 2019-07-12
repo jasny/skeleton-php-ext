@@ -30,7 +30,7 @@ Function InitializeBuildVars {
 	$SearchFilter = 'vcvarsall.bat'
 	$SearchInFolder = "${Env:VSCOMNTOOLS}\..\..\"
 
-	$Env:ENABLE_EXT = "--enable-{0}" -f ("${Env:EXTNAME}" -replace "_","-")
+	$Env:ENABLE_EXT = "--enable-{0}" -f $Env:EXTNAME #("${Env:EXTNAME}" -replace "_","-")
 
 	$Env:VCVARSALL_FILE = Get-ChildItem -Path $SearchInFolder -Filter $SearchFilter -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
 }
