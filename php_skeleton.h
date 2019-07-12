@@ -42,8 +42,6 @@
 # define PHP_SKELETON_API
 #endif
 
-static PHP_MINFO_FUNCTION(skeleton);
-
 /* Declare all functions and classes of the extension */
 static PHP_FUNCTION(skeleton_nop);
 

@@ -68,7 +68,7 @@ build_script:
   - cmd: '"%VCVARSALL_FILE%" %ARCH%'
   - cmd: C:\php-sdk\bin\phpsdk_setvars
   - cmd: C:\php-devpack\phpize
-  - cmd: configure.bat --with-prefix=C:\php --with-php-build=C:\php-devpack --disable-all --enable-
+  - cmd: configure.bat --with-prefix=C:\php --with-php-build=C:\php-devpack --disable-all %ENABLE_EXT%
   - cmd: nmake 2> compile-errors.log 1> compile.log
   - ps: InitializeReleaseVars
 
@@ -113,7 +113,7 @@ deploy:
   description: 'v$(appveyor_build_version)'
   provider: GitHub
   auth_token:
-    secure: "Your encrypted Github token"
+    secure: <your encrypted token>
   artifact: '$(RELEASE_ZIPBALL).zip'
   draft: false
   prerelease: true
