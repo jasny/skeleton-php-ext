@@ -49,7 +49,7 @@ To customize this skeleton for your own extension (e.g. `foo_bar`), edit the fol
 
 ### config.m4 and config.w32
 
-1. Do a search/replace for `HAVE_SKELETON, into `HAVE_FOO_BAR`.
+1. Do a search/replace for `HAVE_SKELETON`, into `HAVE_FOO_BAR`.
 2. Do a search/replace for the word `skeleton` into `foo_bar`.
 3. If your extension name has name underscore, change the enable argument so it uses a dash.
 
