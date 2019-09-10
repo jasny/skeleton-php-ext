@@ -10,4 +10,7 @@ mrproper: clean clean-tests
 info: $(all_targets)
 	"$(PHP_EXECUTABLE)" -d "extension=$(phplibdir)/$(PHP_PECL_EXTENSION).so" --re "$(PHP_PECL_EXTENSION)"
 
+package.xml: php_$(PHP_PECL_EXTENSION).h
+	$(PHP_EXECUTABLE) build-packagexml.php
+
 .PHONY: all clean install distclean test prof-gen prof-clean prof-use clean-tests mrproper info

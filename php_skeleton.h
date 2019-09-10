@@ -31,7 +31,7 @@
 #ifndef PHP_SKELETON_H
 #define PHP_SKELETON_H 1
 
-#define PHP_SKELETON_VERSION "0.0.1"
+#define PHP_SKELETON_VERSION "0.0.1-dev"
 #define PHP_SKELETON_EXTNAME "skeleton"
 
 #ifdef PHP_WIN32
