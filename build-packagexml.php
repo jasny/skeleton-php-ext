@@ -84,7 +84,7 @@ $release = new Release();
     }
     $release->version = $macros['VERSION'];
 
-    if (strpos($release->version, 'dev') !== 0) {
+    if (strpos($release->version, 'dev') !== false) {
         throw new RuntimeException("Development versions shouldn't be released ({$macros['VERSION']}). "
             . "Please change {$macroPrefix}_VERSION in $filename.");
     }
@@ -134,6 +134,9 @@ $release->notes = (function (string $name, string $version): string {
 })((string)$package->name, $release->version);
 
 // 5. Add release to package
+if (!isset($package->changelog)) {
+    $package->addChild('changelog');
+}
 $release->update($package->changelog->prependChild('release'));
 $release->update($package);
 
@@ -249,6 +252,10 @@ class Release
 
     public function existsIn(SimpleXMLElement $changelog): bool
     {
+        if (!isset($changelog->release)) {
+            return false;
+        }
+
         foreach ($changelog->release as $release) {
             if ((string)($release->version->release) === $this->version) {
                 return true;
