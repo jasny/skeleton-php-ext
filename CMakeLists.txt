@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.8)
 project(skeleton C)
 
+if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
+    message(SEND_ERROR "In-source builds are not allowed. They conflict with PHP's own Makefiles.")
+endif()
+
 add_compile_definitions(HAVE_SKELETON)
 
 set(SOURCE_FILES php_skeleton skeleton.c)
