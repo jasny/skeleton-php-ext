@@ -23,7 +23,7 @@ Includes;
 
 ## Requirements
 
-* PHP 7.2+ or 8.0
+* PHP 7.x or 8.x
 
 ## Installation
 
