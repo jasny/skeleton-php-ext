@@ -311,7 +311,7 @@ class PackageXMLElement extends SimpleXMLElement
   <release></release>
   <api></api>
  </stability>
- <license uri="http://www.php.net/license/3_0.txt">PHP License</license>
+ <license uri="https://opensource.org/licenses/MIT">MIT License</license>
  <notes></notes>
  <contents>
   <dir name="/">
@@ -320,6 +320,10 @@ class PackageXMLElement extends SimpleXMLElement
    <file name="CREDITS" role="doc"/>
    <file name="LICENSE" role="doc"/>
    <file name="README.md" role="doc"/>
+   <dir name="autoconf">
+    <file name="pecl.m4" role="src"/>
+    <file name="php-executable.m4" role="src"/>
+   </dir>
   </dir>
  </contents>
  <dependencies>

@@ -8,7 +8,7 @@ PECL_INIT([skeleton])
 
 PHP_ARG_ENABLE(skeleton, whether to enable skeleton, [ --enable-skeleton   Enable skeleton])
 
-if test "$PHP_skeleton" != "no"; then
+if test "$PHP_SKELETON" != "no"; then
   AC_DEFINE(HAVE_SKELETON, 1, [whether skeleton is enabled])
   PHP_NEW_EXTENSION(skeleton, skeleton.c, $ext_shared)
 
