@@ -5,6 +5,7 @@ branches:
   - master
   - appveyor
   - w32
+  - /^v\d+\.\d+\.\d+$/
 
 environment:
   EXTNAME: skeleton
