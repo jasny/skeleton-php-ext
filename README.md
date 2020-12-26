@@ -19,13 +19,11 @@ Includes;
 
 [> Create a new repository, using the skeleton php extension as template.](https://github.com/improved-php-library/skeleton-php-ext/generate)
 
-_This is a work in progress. More goodness will be added._
-
 ---
 
 ## Requirements
 
-* PHP 7.2+
+* PHP 7.2+ or 8.0
 
 ## Installation
 
