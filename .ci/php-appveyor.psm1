@@ -37,7 +37,7 @@ function InstallPhpSdk {
 
 	EnsureRequiredDirectoriesPresent `
 		-Directories bin,lib,include `
-		-Prefix "${InstallPath}\phpdev\vc${VC}\${Platform}"
+		-Prefix "${InstallPath}\phpdev\${VC}\${Platform}"
 }
 
 function InstallPhp {
@@ -59,10 +59,10 @@ function InstallPhp {
 		$ReleasesPart = "releases/archives"
 	}
 
-	$RemoteUrl = "http://windows.php.net/downloads/{0}/php-{1}-{2}-vc{3}-{4}.zip" -f
+	$RemoteUrl = "http://windows.php.net/downloads/{0}/php-{1}-{2}-{3}-{4}.zip" -f
 	$ReleasesPart, $FullVersion, $BuildType, $VC, $Platform
 
-	$Archive   = "C:\Downloads\php-${FullVersion}-${BuildType}-VC${VC}-${Platform}.zip"
+	$Archive   = "C:\Downloads\php-${FullVersion}-${BuildType}-${VC}-${Platform}.zip"
 
 	if (-not (Test-Path "${InstallPath}\php.exe")) {
 		if (-not (Test-Path $Archive)) {
@@ -96,17 +96,17 @@ function InstallPhpDevPack {
 		$ReleasesPart = "releases/archives"
 	}
 
-	$RemoteUrl = "http://windows.php.net/downloads/{0}/php-devel-pack-{1}-{2}-vc{3}-{4}.zip" -f
+	$RemoteUrl = "http://windows.php.net/downloads/{0}/php-devel-pack-{1}-{2}-{3}-{4}.zip" -f
 	$ReleasesPart, $Version, $BuildType, $VC, $Platform
 
-	$Archive   = "C:\Downloads\php-devel-pack-${Version}-${BuildType}-VC${VC}-${Platform}.zip"
+	$Archive   = "C:\Downloads\php-devel-pack-${Version}-${BuildType}-${VC}-${Platform}.zip"
 
 	if (-not (Test-Path "${InstallPath}\phpize.bat")) {
 		if (-not (Test-Path $Archive)) {
 			DownloadFile $RemoteUrl $Archive
 		}
 
-		$UnzipPath = "${Env:Temp}\php-${Version}-devel-VC${VC}-${Platform}"
+		$UnzipPath = "${Env:Temp}\php-${Version}-devel-${VC}-${Platform}"
 		if (-not (Test-Path "${UnzipPath}\phpize.bat")) {
 			Expand-Item7zip $Archive $Env:Temp
 		}
@@ -143,8 +143,8 @@ function InstallPeclExtension {
 		$TS = "ts"
 	}
 
-	$RemoteUrl = "${BaseUri}/${LocalPart}-${TS}-vc${VC}-${Platform}.zip"
-	$DestinationPath = "C:\Downloads\${LocalPart}-${TS}-vc${VC}-${Platform}.zip"
+	$RemoteUrl = "${BaseUri}/${LocalPart}-${TS}-${VC}-${Platform}.zip"
+	$DestinationPath = "C:\Downloads\${LocalPart}-${TS}-${VC}-${Platform}.zip"
 
 	if (-not (Test-Path "${InstallPath}\php_${Name}.dll")) {
 		if (-not (Test-Path $DestinationPath)) {

@@ -1,23 +1,27 @@
 Function InitializeBuildVars {
 	switch ($Env:VC_VERSION) {
-		'14' {
+		'vc14' {
 			If (-not (Test-Path $Env:VS120COMNTOOLS)) {
 				Throw'The VS120COMNTOOLS environment variable is not set. Check your VS installation'
 			}
 
-			$Env:VSCOMNTOOLS = $Env:VS120COMNTOOLS -replace '\\$', ''
+			$Env:VSDEVCMD = ($Env:VS120COMNTOOLS -replace '\\$', '') + '\VsDevCmd.bat'
 			Break
 		}
-		'15' {
+		'vc15' {
 			If (-not (Test-Path $Env:VS140COMNTOOLS)) {
 				Throw'The VS140COMNTOOLS environment variable is not set. Check your VS installation'
 			}
 
-			$Env:VSCOMNTOOLS = $Env:VS140COMNTOOLS -replace '\\$', ''
+			$Env:VSDEVCMD = ($Env:VS140COMNTOOLS -replace '\\$', '') + '\VsDevCmd.bat'
 			Break
 		}
 		default {
-			Throw 'This script is designed to run with VS 14/15. Check your VS installation'
+			$Env:VSDEVCMD = Get-ChildItem -Path "${Env:ProgramFiles(x86)}" -Filter "VsDevCmd.bat" -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+
+			If ("$Env:VSDEVCMD" -eq "") {
+				Throw 'Unable to find VsDevCmd. Check your VS installation'
+			}
 		}
 	}
 
@@ -27,12 +31,10 @@ Function InitializeBuildVars {
 		$Env:ARCH = 'x86'
 	}
 
-	$SearchFilter = 'vcvarsall.bat'
-	$SearchInFolder = "${Env:VSCOMNTOOLS}\..\..\"
-
 	$Env:ENABLE_EXT = "--enable-{0}" -f ("${Env:EXTNAME}" -replace "_","-")
 
-	$Env:VCVARSALL_FILE = Get-ChildItem -Path $SearchInFolder -Filter $SearchFilter -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+	$SearchInFolder = (Get-Item $Env:VSDEVCMD).Directory.Parent.Parent.FullName
+	$Env:VCVARSALL = Get-ChildItem -Path "$SearchInFolder" -Filter "vcvarsall.bat" -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
 }
 
 Function InitializeReleaseVars {
@@ -51,5 +53,5 @@ Function InitializeReleaseVars {
 	}
 
 	$Env:RELEASE_FOLDER = "${Env:APPVEYOR_BUILD_FOLDER}\${Env:RELEASE_SUBFOLDER}"
-	$Env:RELEASE_ZIPBALL = "${Env:EXTNAME}_${Env:PLATFORM}_vc${Env:VC_VERSION}_php${Env:PHP_VERSION}_${Env:APPVEYOR_BUILD_VERSION}"
+	$Env:RELEASE_ZIPBALL = "${Env:EXTNAME}_${Env:PLATFORM}_${Env:VC_VERSION}_php${Env:PHP_VERSION}_${Env:APPVEYOR_BUILD_VERSION}"
 }

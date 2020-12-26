@@ -11,26 +11,46 @@ environment:
 
   matrix:
     - PHP_VERSION: 7.2
-      VC_VERSION: 15
       BUILD_TYPE: Win32
+      VC_VERSION: vc15
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
     - PHP_VERSION: 7.2
-      VC_VERSION: 15
       BUILD_TYPE: nts-Win32
+      VC_VERSION: vc15
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
     - PHP_VERSION: 7.3
-      VC_VERSION: 15
       BUILD_TYPE: Win32
+      VC_VERSION: vc15
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
     - PHP_VERSION: 7.3
-      VC_VERSION: 15
       BUILD_TYPE: nts-Win32
+      VC_VERSION: vc15
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
-  PHP_SDK_VERSION: 2.1.9
+    - PHP_VERSION: 7.4
+      BUILD_TYPE: Win32
+      VC_VERSION: vc15
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+    - PHP_VERSION: 7.4
+      BUILD_TYPE: nts-Win32
+      VC_VERSION: vc15
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+    - PHP_VERSION: 8.0
+      BUILD_TYPE: Win32
+      VC_VERSION: vs16
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+
+    - PHP_VERSION: 8.0
+      BUILD_TYPE: nts-Win32
+      VC_VERSION: vs16
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+
+  PHP_SDK_VERSION: 2.2.0
   TEST_PHP_EXECUTABLE: C:\php\php.exe
   NO_INTERACTION: 1
   REPORT_EXIT_STATUS: 1
@@ -64,8 +84,8 @@ install:
 build_script:
   - ps: Import-Module .\.ci\appveyor.psm1
   - ps: InitializeBuildVars
-  - cmd: '"%VSCOMNTOOLS%\VsDevCmd" -arch=%PLATFORM%'
-  - cmd: '"%VCVARSALL_FILE%" %ARCH%'
+  - cmd: '"%VSDEVCMD%" -arch=%PLATFORM%'
+  - cmd: '"%VCVARSALL%" %ARCH%'
   - cmd: C:\php-sdk\bin\phpsdk_setvars
   - cmd: C:\php-devpack\phpize
   - cmd: configure.bat --with-prefix=C:\php --with-php-build=C:\php-devpack --disable-all %ENABLE_EXT%
