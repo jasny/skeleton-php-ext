@@ -29,45 +29,58 @@ Function Get-VsInstallPath {
 
 Function InitializeBuildVars {
         $InstallPath = $null
+        $DevEnvPreconfigured = [bool]$Env:VSCMD_VER
 
-        switch ($Env:VC_VERSION) {
-                'vc14' {
-                        If (-not (Test-Path $Env:VS120COMNTOOLS)) {
-                                Throw 'The VS120COMNTOOLS environment variable is not set. Check your VS installation'
+        if (-not $DevEnvPreconfigured) {
+                switch ($Env:VC_VERSION) {
+                        'vc14' {
+                                If (-not (Test-Path $Env:VS120COMNTOOLS)) {
+                                        Throw 'The VS120COMNTOOLS environment variable is not set. Check your VS installation'
+                                }
+
+                                $Env:VSDEVCMD = ($Env:VS120COMNTOOLS -replace '\\$', '') + '\\VsDevCmd.bat'
+                                Break
                         }
+                        'vc15' {
+                                If (-not (Test-Path $Env:VS140COMNTOOLS)) {
+                                        Throw 'The VS140COMNTOOLS environment variable is not set. Check your VS installation'
+                                }
 
-                        $Env:VSDEVCMD = ($Env:VS120COMNTOOLS -replace '\\$', '') + '\\VsDevCmd.bat'
-                        Break
+                                $Env:VSDEVCMD = ($Env:VS140COMNTOOLS -replace '\\$', '') + '\\VsDevCmd.bat'
+                                Break
+                        }
+                        default {
+                                $VersionRange = $null
+                                $ProgramFilesX86 = ${Env:ProgramFiles(x86)}
+
+                                if ($Env:VC_VERSION -match '^vs([0-9]+)$') {
+                                        $VsMajor = [int]$Matches[1]
+                                        $NextMajor = $VsMajor + 1
+                                        $VersionRange = "[${VsMajor}.0,${NextMajor}.0)"
+                                }
+
+                                $InstallPath = Get-VsInstallPath -VersionRange $VersionRange
+
+                                if (-not $InstallPath) {
+                                        $Env:VSDEVCMD = Get-ChildItem -Path $ProgramFilesX86 -Filter "VsDevCmd.bat" -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName } | Select-Object -First 1
+                                } else {
+                                        $Env:VSDEVCMD = Join-Path $InstallPath "Common7\Tools\VsDevCmd.bat"
+                                }
+
+                                If (-not $Env:VSDEVCMD -or -not (Test-Path $Env:VSDEVCMD)) {
+                                        Throw 'Unable to find VsDevCmd. Check your VS installation'
+                                }
+                        }
                 }
-                'vc15' {
-                        If (-not (Test-Path $Env:VS140COMNTOOLS)) {
-                                Throw 'The VS140COMNTOOLS environment variable is not set. Check your VS installation'
-                        }
 
-                        $Env:VSDEVCMD = ($Env:VS140COMNTOOLS -replace '\\$', '') + '\\VsDevCmd.bat'
-                        Break
+                if (-not $InstallPath) {
+                        $InstallPath = (Get-Item $Env:VSDEVCMD).Directory.Parent.Parent.FullName
                 }
-                default {
-                        $VersionRange = $null
-                        $ProgramFilesX86 = ${Env:ProgramFiles(x86)}
 
-                        if ($Env:VC_VERSION -match '^vs([0-9]+)$') {
-                                $VsMajor = [int]$Matches[1]
-                                $NextMajor = $VsMajor + 1
-                                $VersionRange = "[${VsMajor}.0,${NextMajor}.0)"
-                        }
+                $Env:VCVARSALL = Get-ChildItem -Path $InstallPath -Filter "vcvarsall.bat" -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName } | Select-Object -First 1
 
-                        $InstallPath = Get-VsInstallPath -VersionRange $VersionRange
-
-                        if (-not $InstallPath) {
-                                $Env:VSDEVCMD = Get-ChildItem -Path $ProgramFilesX86 -Filter "VsDevCmd.bat" -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName } | Select-Object -First 1
-                        } else {
-                                $Env:VSDEVCMD = Join-Path $InstallPath "Common7\Tools\VsDevCmd.bat"
-                        }
-
-                        If (-not $Env:VSDEVCMD -or -not (Test-Path $Env:VSDEVCMD)) {
-                                Throw 'Unable to find VsDevCmd. Check your VS installation'
-                        }
+                if (-not $Env:VCVARSALL -or -not (Test-Path $Env:VCVARSALL)) {
+                        Throw 'Unable to find vcvarsall.bat. Check your VS installation'
                 }
         }
 
@@ -78,16 +91,6 @@ Function InitializeBuildVars {
         }
 
         $Env:ENABLE_EXT = "--enable-{0}" -f ("${Env:EXTNAME}" -replace "_", "-")
-
-        if (-not $InstallPath) {
-                $InstallPath = (Get-Item $Env:VSDEVCMD).Directory.Parent.Parent.FullName
-        }
-
-        $Env:VCVARSALL = Get-ChildItem -Path $InstallPath -Filter "vcvarsall.bat" -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName } | Select-Object -First 1
-
-        if (-not $Env:VCVARSALL -or -not (Test-Path $Env:VCVARSALL)) {
-                Throw 'Unable to find vcvarsall.bat. Check your VS installation'
-        }
 }
 
 Function InitializeReleaseVars {

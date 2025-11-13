@@ -80,6 +80,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
       - name: Install PHP SDK and toolchain
         shell: pwsh
         run: |
@@ -93,10 +98,17 @@ jobs:
         run: |
           Import-Module "$env:GITHUB_WORKSPACE\.ci\windows-build.psm1"
           InitializeBuildVars
-          $commands = @(
-            "call `"$env:VSDEVCMD`" -arch=$env:PLATFORM",
-            "call `"$env:VCVARSALL`" $env:ARCH",
-            "call C:\php-sdk\bin\phpsdk_setvars.bat",
+          $commands = @()
+
+          if ($env:VSDEVCMD) {
+            $commands += "call `"$env:VSDEVCMD`" -arch=$env:PLATFORM"
+          }
+
+          if ($env:VCVARSALL) {
+            $commands += "call `"$env:VCVARSALL`" $env:ARCH"
+          }
+
+          $commands += @("call C:\php-sdk\bin\phpsdk_setvars.bat",
             "call C:\php-devpack\phpize.bat",
             "call configure.bat --with-prefix=C:\php --with-php-build=C:\php-devpack --disable-all $env:ENABLE_EXT",
             "call nmake",
