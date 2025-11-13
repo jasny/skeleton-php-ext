@@ -3,7 +3,6 @@
 # Skeleton PHP extension
 
 [![CI Status](https://github.com/improved-php-library/skeleton-php-ext/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/improved-php-library/skeleton-php-ext/actions/workflows/ci.yml)
-[![Build status](https://ci.appveyor.com/api/projects/status/7rof1vr8mv4kam17/branch/master?svg=true)](https://ci.appveyor.com/project/jasny/skeleton-php-ext/branch/master)
 
 Skeleton project for PHP C-extension.
 
@@ -12,7 +11,7 @@ Skeleton project for PHP C-extension.
 
 Includes;
 
-* GitHub Actions (Linux) and AppVeyor (Windows) configuration for continuous integration / platform tests.
+* GitHub Actions configuration for Linux and Windows continuous integration / platform tests.
 * CMake config for editing in [CLion](https://www.jetbrains.com/clion/). (See [this article](https://dev.to/jasny/developing-a-php-extension-in-clion-3oo1))
 * Supported for pecl dependencies.
 
@@ -83,18 +82,18 @@ To customize this skeleton for your own extension (e.g. `foo_bar`), edit the fol
 4. Change the `zend_module_entry` from `skeleton_module_entry` to `foo_bar_module_entry`
 5. In `ZEND_GET_MODULE` replace `skeleton` to `foo_bar`.
 
-### .appveyor.yml and GitHub Actions workflow
+### GitHub Actions workflow
 
-Change `skeleton` with your extension name for the `EXTNAME` env var.
+Change `skeleton` with your extension name for the `EXTNAME` env var in the Windows job.
 
 ```
 env:
   EXTNAME: foo_bar
 ```
 
-Update `.github/workflows/ci.yml` so that it references your extension name where needed. When you are ready to publish
-artifacts through GitHub Actions, store any required secrets (like a GitHub token) as encrypted repository secrets and
-consume them from the workflow instead of committing sensitive values.
+Update `.github/workflows/ci.yml` so that both the Linux and Windows jobs reference your extension name where needed.
+When you are ready to publish artifacts through GitHub Actions, store any required secrets (like a GitHub token) as
+encrypted repository secrets and consume them from the workflow instead of committing sensitive values.
 
 ### LICENSE
 

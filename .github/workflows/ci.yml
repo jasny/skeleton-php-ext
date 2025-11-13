@@ -11,8 +11,8 @@ on:
       - master
 
 jobs:
-  build:
-    name: PHP ${{ matrix.php-version }}
+  linux:
+    name: Linux PHP ${{ matrix.php-version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -50,3 +50,70 @@ jobs:
         if: failure()
         run: |
           find tests -name '*.diff' -print -exec cat {} +
+
+  windows:
+    name: Windows PHP ${{ matrix.php-version }} (${{ matrix.build-type }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - '8.1'
+          - '8.2'
+          - '8.3'
+        build-type:
+          - 'nts-Win32'
+          - 'Win32'
+    env:
+      EXTNAME: skeleton
+      VC_VERSION: vs16
+      PLATFORM: x64
+      PHP_SDK_VERSION: 2.2.0
+      PHP_VERSION: ${{ matrix.php-version }}
+      BUILD_TYPE: ${{ matrix.build-type }}
+      APPVEYOR_BUILD_FOLDER: ${{ github.workspace }}
+      TEST_PHP_EXECUTABLE: C:\php\php.exe
+      NO_INTERACTION: 1
+      REPORT_EXIT_STATUS: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PHP SDK and toolchain
+        shell: pwsh
+        run: |
+          Import-Module "$env:GITHUB_WORKSPACE\.ci\php-appveyor.psm1"
+          InstallPhpSdk     $Env:PHP_SDK_VERSION $Env:VC_VERSION $Env:PLATFORM
+          InstallPhp        $Env:PHP_VERSION     $Env:BUILD_TYPE  $Env:VC_VERSION $Env:PLATFORM
+          InstallPhpDevPack $Env:PHP_VERSION     $Env:BUILD_TYPE  $Env:VC_VERSION $Env:PLATFORM
+
+      - name: Build and test
+        shell: pwsh
+        run: |
+          Import-Module "$env:GITHUB_WORKSPACE\.ci\appveyor.psm1"
+          InitializeBuildVars
+          $commands = @(
+            "call `"$env:VSDEVCMD`" -arch=$env:PLATFORM",
+            "call `"$env:VCVARSALL`" $env:ARCH",
+            "call C:\php-sdk\bin\phpsdk_setvars.bat",
+            "call C:\php-devpack\phpize.bat",
+            "call configure.bat --with-prefix=C:\php --with-php-build=C:\php-devpack --disable-all $env:ENABLE_EXT",
+            "call nmake",
+            "call nmake test"
+          )
+          cmd /c ($commands -join " && ")
+
+      - name: Upload logs on failure
+        if: failure()
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path . -Filter 'compile*.log' -File | ForEach-Object {
+            Write-Host "--- $($_.FullName)"; Get-Content $_
+          }
+          Get-ChildItem -Path . -Filter 'config*.log' -File | ForEach-Object {
+            Write-Host "--- $($_.FullName)"; Get-Content $_
+          }
+          Get-ChildItem -Path tests -Recurse -Filter '*.diff' -File | ForEach-Object {
+            Write-Host "--- $($_.FullName)"; Get-Content $_
+          }
