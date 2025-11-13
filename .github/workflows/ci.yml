@@ -83,7 +83,7 @@ jobs:
       - name: Install PHP SDK and toolchain
         shell: pwsh
         run: |
-          Import-Module "$env:GITHUB_WORKSPACE\.ci\php-appveyor.psm1"
+          Import-Module "$env:GITHUB_WORKSPACE\.ci\windows-php.psm1"
           InstallPhpSdk     $Env:PHP_SDK_VERSION $Env:VC_VERSION $Env:PLATFORM
           InstallPhp        $Env:PHP_VERSION     $Env:BUILD_TYPE  $Env:VC_VERSION $Env:PLATFORM
           InstallPhpDevPack $Env:PHP_VERSION     $Env:BUILD_TYPE  $Env:VC_VERSION $Env:PLATFORM
@@ -91,7 +91,7 @@ jobs:
       - name: Build and test
         shell: pwsh
         run: |
-          Import-Module "$env:GITHUB_WORKSPACE\.ci\appveyor.psm1"
+          Import-Module "$env:GITHUB_WORKSPACE\.ci\windows-build.psm1"
           InitializeBuildVars
           $commands = @(
             "call `"$env:VSDEVCMD`" -arch=$env:PLATFORM",
