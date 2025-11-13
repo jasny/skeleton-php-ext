@@ -2,7 +2,7 @@
 
 # Skeleton PHP extension
 
-[![Build Status](https://travis-ci.org/improved-php-library/skeleton-php-ext.svg?branch=master)](https://travis-ci.org/improved-php-library/skeleton-php-ext)
+[![CI Status](https://github.com/improved-php-library/skeleton-php-ext/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/improved-php-library/skeleton-php-ext/actions/workflows/ci.yml)
 [![Build status](https://ci.appveyor.com/api/projects/status/7rof1vr8mv4kam17/branch/master?svg=true)](https://ci.appveyor.com/project/jasny/skeleton-php-ext/branch/master)
 
 Skeleton project for PHP C-extension.
@@ -12,8 +12,7 @@ Skeleton project for PHP C-extension.
 
 Includes;
 
-* Travis (Linux) and AppVeyor (Windows) configuration for continuous integration / platform tests.
-  * Automatic deployment of package to GitHub releases
+* GitHub Actions (Linux) and AppVeyor (Windows) configuration for continuous integration / platform tests.
 * CMake config for editing in [CLion](https://www.jetbrains.com/clion/). (See [this article](https://dev.to/jasny/developing-a-php-extension-in-clion-3oo1))
 * Supported for pecl dependencies.
 
@@ -84,7 +83,7 @@ To customize this skeleton for your own extension (e.g. `foo_bar`), edit the fol
 4. Change the `zend_module_entry` from `skeleton_module_entry` to `foo_bar_module_entry`
 5. In `ZEND_GET_MODULE` replace `skeleton` to `foo_bar`.
 
-### .appveyor.yml and .travis.yml
+### .appveyor.yml and GitHub Actions workflow
 
 Change `skeleton` with your extension name for the `EXTNAME` env var.
 
@@ -93,18 +92,9 @@ env:
   EXTNAME: foo_bar
 ```
 
-#### Deployment
-
-Both Travis and AppVeyor are configured to automatically deploy the generated packages to
-[GitHub releases](https://help.github.com/en/articles/creating-releases). In order to do so, you need to specify a
-GitHub API key.
-
-1. Create a new [Personal access token](https://github.com/settings/tokens) on GitHub via developer settings with the
-    `public_repo` privilege.
-2. For AppVeyor, encrypt the token using the online [Encrypt Yaml](https://ci.appveyor.com/tools/encrypt) tool. Replace
-    `<your encrypted toke>` for the encrypted value in `.appveyor.yml`.
-3. For Travis, install the Travis CLI (`gem install travis`) and use `travis encrypt` to encrypt the token. Replace
-    `<your encrypted toke>` for the encrypted value in `.travis.yml`.
+Update `.github/workflows/ci.yml` so that it references your extension name where needed. When you are ready to publish
+artifacts through GitHub Actions, store any required secrets (like a GitHub token) as encrypted repository secrets and
+consume them from the workflow instead of committing sensitive values.
 
 ### LICENSE
 
