@@ -49,8 +49,12 @@ function InstallPhp {
 		[Parameter(Mandatory=$false)] [System.String] $InstallPath = "C:\php"
 	)
 
-	SetupPrerequisites
-	$FullVersion = SetupPhpVersionString -Pattern $Version
+        SetupPrerequisites
+        $FullVersion = $Env:PHP_FULL_VERSION
+
+        if (-not $FullVersion) {
+                $FullVersion = SetupPhpVersionString -Pattern $Version
+        }
 
 	Write-Debug "Install PHP v${FullVersion}"
 
@@ -86,8 +90,12 @@ function InstallPhpDevPack {
 		[Parameter(Mandatory=$false)] [System.String] $InstallPath = "C:\php-devpack"
 	)
 
-	SetupPrerequisites
-	$Version = SetupPhpVersionString -Pattern $PhpVersion
+        SetupPrerequisites
+        $Version = $Env:PHP_FULL_VERSION
+
+        if (-not $Version) {
+                $Version = SetupPhpVersionString -Pattern $PhpVersion
+        }
 
 	Write-Debug "Install PHP Dev for PHP v${Version}"
 
@@ -436,10 +444,47 @@ function FormatReleaseFiles {
 	Set-Location "${CurrentPath}"
 }
 
+function ResolvePhpToolset {
+        param (
+                [Parameter(Mandatory=$true)] [String] $PhpVersion
+        )
+
+        $FullVersion = SetupPhpVersionString -Pattern $PhpVersion
+        $ParsedVersion = [Version]$FullVersion
+
+        $VcVersion = 'vs16'
+        $VsVersion = '2019'
+
+        if ($ParsedVersion.Major -gt 8) {
+                $VcVersion = 'vs17'
+                $VsVersion = '2022'
+        } elseif ($ParsedVersion.Major -eq 8) {
+                if ($ParsedVersion.Minor -ge 2) {
+                        $VcVersion = 'vs17'
+                        $VsVersion = '2022'
+                } else {
+                        $VcVersion = 'vs16'
+                        $VsVersion = '2019'
+                }
+        } elseif ($ParsedVersion.Major -eq 7 -and $ParsedVersion.Minor -ge 4) {
+                $VcVersion = 'vc15'
+                $VsVersion = '2017'
+        } elseif ($ParsedVersion.Major -eq 7 -and $ParsedVersion.Minor -ge 0) {
+                $VcVersion = 'vc14'
+                $VsVersion = '2015'
+        }
+
+        return [PSCustomObject]@{
+                FullVersion = $FullVersion
+                VcVersion   = $VcVersion
+                VsVersion   = $VsVersion
+        }
+}
+
 function SetupPhpVersionString {
-	param (
-		[Parameter(Mandatory=$true)] [String] $Pattern
-	)
+        param (
+                [Parameter(Mandatory=$true)] [String] $Pattern
+        )
 
         $RemoteUrl   = 'https://windows.php.net/downloads/releases/sha256sum.txt'
 	$Destination = "${Env:Temp}\php-sha256sum.txt"

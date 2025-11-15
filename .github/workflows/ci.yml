@@ -60,31 +60,18 @@ jobs:
         include:
           - php-version: '8.1'
             build-type: 'nts-Win32'
-            vc-version: vs16
-            vs-version: '2019'
           - php-version: '8.1'
             build-type: 'Win32'
-            vc-version: vs16
-            vs-version: '2019'
           - php-version: '8.2'
             build-type: 'nts-Win32'
-            vc-version: vs17
-            vs-version: '2022'
           - php-version: '8.2'
             build-type: 'Win32'
-            vc-version: vs17
-            vs-version: '2022'
           - php-version: '8.3'
             build-type: 'nts-Win32'
-            vc-version: vs17
-            vs-version: '2022'
           - php-version: '8.3'
             build-type: 'Win32'
-            vc-version: vs17
-            vs-version: '2022'
     env:
       EXTNAME: skeleton
-      VC_VERSION: ${{ matrix.vc-version }}
       PLATFORM: x64
       PHP_SDK_VERSION: 2.2.0
       PHP_VERSION: ${{ matrix.php-version }}
@@ -98,11 +85,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Resolve PHP toolset
+        id: php-toolset
+        shell: pwsh
+        run: |
+          Import-Module "$env:GITHUB_WORKSPACE\.ci\windows-php.psm1"
+          $toolset = ResolvePhpToolset -PhpVersion $env:PHP_VERSION
+          Add-Content -Path $env:GITHUB_ENV -Value "PHP_FULL_VERSION=$($toolset.FullVersion)"
+          Add-Content -Path $env:GITHUB_ENV -Value "VC_VERSION=$($toolset.VcVersion)"
+          Add-Content -Path $env:GITHUB_ENV -Value "VS_VERSION=$($toolset.VsVersion)"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "full-version=$($toolset.FullVersion)"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "vc-version=$($toolset.VcVersion)"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "vs-version=$($toolset.VsVersion)"
+
       - name: Setup MSVC environment
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
-          vsversion: ${{ matrix.vs-version }}
+          vsversion: ${{ steps.php-toolset.outputs.vs-version }}
 
       - name: Install PHP SDK and toolchain
         shell: pwsh
