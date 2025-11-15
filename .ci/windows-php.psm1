@@ -1,4 +1,4 @@
-# This file is part of the php-appveyor.psm1 project.
+# This file is part of the windows-php.psm1 helpers for CI builds.
 #
 # (c) Serghei Iakovlev <sadhooklay@gmail.com>
 #
@@ -297,10 +297,28 @@ function PrepareReleaseNote {
 	$ReleaseFile = "${Destination}\${ReleaseFile}"
 	$ReleaseDate = Get-Date -Format o
 
-	$Image = $Env:APPVEYOR_BUILD_WORKER_IMAGE
-	$Version = $Env:APPVEYOR_BUILD_VERSION
-	$Commit = $Env:APPVEYOR_REPO_COMMIT
-	$CommitDate = $Env:APPVEYOR_REPO_COMMIT_TIMESTAMP
+        $Image = $Env:GITHUB_RUNNER_OS
+        if (-not $Image) {
+                $Image = $Env:APPVEYOR_BUILD_WORKER_IMAGE
+        }
+
+        $Version = $Env:GITHUB_RUN_NUMBER
+        if (-not $Version) {
+                $Version = $Env:APPVEYOR_BUILD_VERSION
+        }
+
+        $Commit = $Env:GITHUB_SHA
+        if (-not $Commit) {
+                $Commit = $Env:APPVEYOR_REPO_COMMIT
+        }
+
+        $CommitDate = $Env:GITHUB_EVENT_HEAD_COMMIT_TIMESTAMP
+        if (-not $CommitDate) {
+                $CommitDate = $Env:APPVEYOR_REPO_COMMIT_TIMESTAMP
+        }
+        if (-not $CommitDate) {
+                $CommitDate = Get-Date -Format o
+        }
 
 	Write-Output "Release date: ${ReleaseDate}"      | Out-File -Encoding "ASCII" -Append "${ReleaseFile}"
 	Write-Output "Release version: ${Version}"       | Out-File -Encoding "ASCII" -Append "${ReleaseFile}"
@@ -325,7 +343,26 @@ function PrepareReleasePackage {
 	)
 
 	$BasePath = Resolve-Path $BasePath
-	$ReleaseDirectory = "${Env:APPVEYOR_PROJECT_NAME}-${Env:APPVEYOR_BUILD_ID}-${Env:APPVEYOR_JOB_ID}-${Env:APPVEYOR_JOB_NUMBER}"
+        if ($Env:APPVEYOR_PROJECT_NAME) {
+                $ReleaseDirectory = "${Env:APPVEYOR_PROJECT_NAME}-${Env:APPVEYOR_BUILD_ID}-${Env:APPVEYOR_JOB_ID}-${Env:APPVEYOR_JOB_NUMBER}"
+        } else {
+                $Repository = $Env:GITHUB_REPOSITORY
+                if (-not $Repository) {
+                        $Repository = 'project'
+                }
+
+                $RunId = $Env:GITHUB_RUN_ID
+                if (-not $RunId) {
+                        $RunId = 'local'
+                }
+
+                $RunAttempt = $Env:GITHUB_RUN_ATTEMPT
+                if (-not $RunAttempt) {
+                        $RunAttempt = '1'
+                }
+
+                $ReleaseDirectory = "${Repository}-${RunId}-${RunAttempt}"
+        }
 
 	PrepareReleaseNote `
 		-PhpVersion       $PhpVersion `
@@ -508,8 +545,8 @@ function DownloadFile {
 	$RetryCount = 0
 	$Completed  = $false
 
-	$WebClient = New-Object System.Net.WebClient
-	$WebClient.Headers.Add('User-Agent', 'AppVeyor PowerShell Script')
+        $WebClient = New-Object System.Net.WebClient
+        $WebClient.Headers.Add('User-Agent', 'GitHubActions PowerShell Script')
 
 	Write-Debug "Downloading: '${RemoteUrl}' => '${Destination}' ..."
 
