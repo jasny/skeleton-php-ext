@@ -57,16 +57,34 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version:
-          - '8.1'
-          - '8.2'
-          - '8.3'
-        build-type:
-          - 'nts-Win32'
-          - 'Win32'
+        include:
+          - php-version: '8.1'
+            build-type: 'nts-Win32'
+            vc-version: vs16
+            vs-version: '2019'
+          - php-version: '8.1'
+            build-type: 'Win32'
+            vc-version: vs16
+            vs-version: '2019'
+          - php-version: '8.2'
+            build-type: 'nts-Win32'
+            vc-version: vs17
+            vs-version: '2022'
+          - php-version: '8.2'
+            build-type: 'Win32'
+            vc-version: vs17
+            vs-version: '2022'
+          - php-version: '8.3'
+            build-type: 'nts-Win32'
+            vc-version: vs17
+            vs-version: '2022'
+          - php-version: '8.3'
+            build-type: 'Win32'
+            vc-version: vs17
+            vs-version: '2022'
     env:
       EXTNAME: skeleton
-      VC_VERSION: vs17
+      VC_VERSION: ${{ matrix.vc-version }}
       PLATFORM: x64
       PHP_SDK_VERSION: 2.2.0
       PHP_VERSION: ${{ matrix.php-version }}
@@ -84,7 +102,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
-          vsversion: '2022'
+          vsversion: ${{ matrix.vs-version }}
 
       - name: Install PHP SDK and toolchain
         shell: pwsh

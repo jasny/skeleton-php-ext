@@ -59,7 +59,7 @@ function InstallPhp {
 		$ReleasesPart = "releases/archives"
 	}
 
-	$RemoteUrl = "http://windows.php.net/downloads/{0}/php-{1}-{2}-{3}-{4}.zip" -f
+        $RemoteUrl = "https://windows.php.net/downloads/{0}/php-{1}-{2}-{3}-{4}.zip" -f
 	$ReleasesPart, $FullVersion, $BuildType, $VC, $Platform
 
 	$Archive   = "C:\Downloads\php-${FullVersion}-${BuildType}-${VC}-${Platform}.zip"
@@ -96,7 +96,7 @@ function InstallPhpDevPack {
 		$ReleasesPart = "releases/archives"
 	}
 
-	$RemoteUrl = "http://windows.php.net/downloads/{0}/php-devel-pack-{1}-{2}-{3}-{4}.zip" -f
+        $RemoteUrl = "https://windows.php.net/downloads/{0}/php-devel-pack-{1}-{2}-{3}-{4}.zip" -f
 	$ReleasesPart, $Version, $BuildType, $VC, $Platform
 
 	$Archive   = "C:\Downloads\php-devel-pack-${Version}-${BuildType}-${VC}-${Platform}.zip"
@@ -441,7 +441,7 @@ function SetupPhpVersionString {
 		[Parameter(Mandatory=$true)] [String] $Pattern
 	)
 
-	$RemoteUrl   = 'http://windows.php.net/downloads/releases/sha256sum.txt'
+        $RemoteUrl   = 'https://windows.php.net/downloads/releases/sha256sum.txt'
 	$Destination = "${Env:Temp}\php-sha256sum.txt"
 
 	if (-not (Test-Path $Destination)) {
