@@ -459,7 +459,7 @@ function ResolvePhpToolset {
                 $VcVersion = 'vs17'
                 $VsVersion = '2022'
         } elseif ($ParsedVersion.Major -eq 8) {
-                if ($ParsedVersion.Minor -ge 2) {
+                if ($ParsedVersion.Minor -ge 4) {
                         $VcVersion = 'vs17'
                         $VsVersion = '2022'
                 } else {
