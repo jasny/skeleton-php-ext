@@ -1,4 +1,4 @@
-# This file is part of the php-appveyor.psm1 project.
+# This file is part of the windows-php.psm1 helpers for CI builds.
 #
 # (c) Serghei Iakovlev <sadhooklay@gmail.com>
 #
@@ -49,8 +49,12 @@ function InstallPhp {
 		[Parameter(Mandatory=$false)] [System.String] $InstallPath = "C:\php"
 	)
 
-	SetupPrerequisites
-	$FullVersion = SetupPhpVersionString -Pattern $Version
+        SetupPrerequisites
+        $FullVersion = $Env:PHP_FULL_VERSION
+
+        if (-not $FullVersion) {
+                $FullVersion = SetupPhpVersionString -Pattern $Version
+        }
 
 	Write-Debug "Install PHP v${FullVersion}"
 
@@ -59,7 +63,7 @@ function InstallPhp {
 		$ReleasesPart = "releases/archives"
 	}
 
-	$RemoteUrl = "http://windows.php.net/downloads/{0}/php-{1}-{2}-{3}-{4}.zip" -f
+        $RemoteUrl = "https://windows.php.net/downloads/{0}/php-{1}-{2}-{3}-{4}.zip" -f
 	$ReleasesPart, $FullVersion, $BuildType, $VC, $Platform
 
 	$Archive   = "C:\Downloads\php-${FullVersion}-${BuildType}-${VC}-${Platform}.zip"
@@ -86,8 +90,12 @@ function InstallPhpDevPack {
 		[Parameter(Mandatory=$false)] [System.String] $InstallPath = "C:\php-devpack"
 	)
 
-	SetupPrerequisites
-	$Version = SetupPhpVersionString -Pattern $PhpVersion
+        SetupPrerequisites
+        $Version = $Env:PHP_FULL_VERSION
+
+        if (-not $Version) {
+                $Version = SetupPhpVersionString -Pattern $PhpVersion
+        }
 
 	Write-Debug "Install PHP Dev for PHP v${Version}"
 
@@ -96,7 +104,7 @@ function InstallPhpDevPack {
 		$ReleasesPart = "releases/archives"
 	}
 
-	$RemoteUrl = "http://windows.php.net/downloads/{0}/php-devel-pack-{1}-{2}-{3}-{4}.zip" -f
+        $RemoteUrl = "https://windows.php.net/downloads/{0}/php-devel-pack-{1}-{2}-{3}-{4}.zip" -f
 	$ReleasesPart, $Version, $BuildType, $VC, $Platform
 
 	$Archive   = "C:\Downloads\php-devel-pack-${Version}-${BuildType}-${VC}-${Platform}.zip"
@@ -297,10 +305,28 @@ function PrepareReleaseNote {
 	$ReleaseFile = "${Destination}\${ReleaseFile}"
 	$ReleaseDate = Get-Date -Format o
 
-	$Image = $Env:APPVEYOR_BUILD_WORKER_IMAGE
-	$Version = $Env:APPVEYOR_BUILD_VERSION
-	$Commit = $Env:APPVEYOR_REPO_COMMIT
-	$CommitDate = $Env:APPVEYOR_REPO_COMMIT_TIMESTAMP
+        $Image = $Env:GITHUB_RUNNER_OS
+        if (-not $Image) {
+                $Image = $Env:APPVEYOR_BUILD_WORKER_IMAGE
+        }
+
+        $Version = $Env:GITHUB_RUN_NUMBER
+        if (-not $Version) {
+                $Version = $Env:APPVEYOR_BUILD_VERSION
+        }
+
+        $Commit = $Env:GITHUB_SHA
+        if (-not $Commit) {
+                $Commit = $Env:APPVEYOR_REPO_COMMIT
+        }
+
+        $CommitDate = $Env:GITHUB_EVENT_HEAD_COMMIT_TIMESTAMP
+        if (-not $CommitDate) {
+                $CommitDate = $Env:APPVEYOR_REPO_COMMIT_TIMESTAMP
+        }
+        if (-not $CommitDate) {
+                $CommitDate = Get-Date -Format o
+        }
 
 	Write-Output "Release date: ${ReleaseDate}"      | Out-File -Encoding "ASCII" -Append "${ReleaseFile}"
 	Write-Output "Release version: ${Version}"       | Out-File -Encoding "ASCII" -Append "${ReleaseFile}"
@@ -325,7 +351,26 @@ function PrepareReleasePackage {
 	)
 
 	$BasePath = Resolve-Path $BasePath
-	$ReleaseDirectory = "${Env:APPVEYOR_PROJECT_NAME}-${Env:APPVEYOR_BUILD_ID}-${Env:APPVEYOR_JOB_ID}-${Env:APPVEYOR_JOB_NUMBER}"
+        if ($Env:APPVEYOR_PROJECT_NAME) {
+                $ReleaseDirectory = "${Env:APPVEYOR_PROJECT_NAME}-${Env:APPVEYOR_BUILD_ID}-${Env:APPVEYOR_JOB_ID}-${Env:APPVEYOR_JOB_NUMBER}"
+        } else {
+                $Repository = $Env:GITHUB_REPOSITORY
+                if (-not $Repository) {
+                        $Repository = 'project'
+                }
+
+                $RunId = $Env:GITHUB_RUN_ID
+                if (-not $RunId) {
+                        $RunId = 'local'
+                }
+
+                $RunAttempt = $Env:GITHUB_RUN_ATTEMPT
+                if (-not $RunAttempt) {
+                        $RunAttempt = '1'
+                }
+
+                $ReleaseDirectory = "${Repository}-${RunId}-${RunAttempt}"
+        }
 
 	PrepareReleaseNote `
 		-PhpVersion       $PhpVersion `
@@ -399,12 +444,49 @@ function FormatReleaseFiles {
 	Set-Location "${CurrentPath}"
 }
 
-function SetupPhpVersionString {
-	param (
-		[Parameter(Mandatory=$true)] [String] $Pattern
-	)
+function ResolvePhpToolset {
+        param (
+                [Parameter(Mandatory=$true)] [String] $PhpVersion
+        )
 
-	$RemoteUrl   = 'http://windows.php.net/downloads/releases/sha256sum.txt'
+        $FullVersion = SetupPhpVersionString -Pattern $PhpVersion
+        $ParsedVersion = [Version]$FullVersion
+
+        $VcVersion = 'vs16'
+        $VsVersion = '2019'
+
+        if ($ParsedVersion.Major -gt 8) {
+                $VcVersion = 'vs17'
+                $VsVersion = '2022'
+        } elseif ($ParsedVersion.Major -eq 8) {
+                if ($ParsedVersion.Minor -ge 4) {
+                        $VcVersion = 'vs17'
+                        $VsVersion = '2022'
+                } else {
+                        $VcVersion = 'vs16'
+                        $VsVersion = '2019'
+                }
+        } elseif ($ParsedVersion.Major -eq 7 -and $ParsedVersion.Minor -ge 4) {
+                $VcVersion = 'vc15'
+                $VsVersion = '2017'
+        } elseif ($ParsedVersion.Major -eq 7 -and $ParsedVersion.Minor -ge 0) {
+                $VcVersion = 'vc14'
+                $VsVersion = '2015'
+        }
+
+        return [PSCustomObject]@{
+                FullVersion = $FullVersion
+                VcVersion   = $VcVersion
+                VsVersion   = $VsVersion
+        }
+}
+
+function SetupPhpVersionString {
+        param (
+                [Parameter(Mandatory=$true)] [String] $Pattern
+        )
+
+        $RemoteUrl   = 'https://windows.php.net/downloads/releases/sha256sum.txt'
 	$Destination = "${Env:Temp}\php-sha256sum.txt"
 
 	if (-not (Test-Path $Destination)) {
@@ -508,8 +590,8 @@ function DownloadFile {
 	$RetryCount = 0
 	$Completed  = $false
 
-	$WebClient = New-Object System.Net.WebClient
-	$WebClient.Headers.Add('User-Agent', 'AppVeyor PowerShell Script')
+        $WebClient = New-Object System.Net.WebClient
+        $WebClient.Headers.Add('User-Agent', 'GitHubActions PowerShell Script')
 
 	Write-Debug "Downloading: '${RemoteUrl}' => '${Destination}' ..."
 

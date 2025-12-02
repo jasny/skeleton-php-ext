@@ -1,0 +1,156 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  linux:
+    name: Linux PHP ${{ matrix.php-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - '8.3'
+          - '8.4'
+          - '8.5'
+          - 'nightly'
+    continue-on-error: ${{ matrix.php-version == 'nightly' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          phpize
+          ./configure
+          make
+
+      - name: Install extension
+        run: sudo make install
+
+      - name: Run tests
+        run: make test
+
+      - name: Upload test diffs on failure
+        if: failure()
+        run: |
+          find tests -name '*.diff' -print -exec cat {} +
+
+  windows:
+    name: Windows PHP ${{ matrix.php-version }} (${{ matrix.build-type }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php-version: '8.3'
+            build-type: 'nts-Win32'
+            runner: 'windows-2019'
+          - php-version: '8.3'
+            build-type: 'Win32'
+            runner: 'windows-2019'
+          - php-version: '8.4'
+            build-type: 'nts-Win32'
+            runner: 'windows-latest'
+          - php-version: '8.4'
+            build-type: 'Win32'
+            runner: 'windows-latest'
+          - php-version: '8.5'
+            build-type: 'nts-Win32'
+            runner: 'windows-latest'
+          - php-version: '8.5'
+            build-type: 'Win32'
+            runner: 'windows-latest'
+    env:
+      EXTNAME: skeleton
+      PLATFORM: x64
+      PHP_SDK_VERSION: 2.2.0
+      PHP_VERSION: ${{ matrix.php-version }}
+      BUILD_TYPE: ${{ matrix.build-type }}
+      APPVEYOR_BUILD_FOLDER: ${{ github.workspace }}
+      TEST_PHP_EXECUTABLE: C:\php\php.exe
+      NO_INTERACTION: 1
+      REPORT_EXIT_STATUS: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve PHP toolset
+        id: php-toolset
+        shell: pwsh
+        run: |
+          Import-Module "$env:GITHUB_WORKSPACE\.ci\windows-php.psm1"
+          $toolset = ResolvePhpToolset -PhpVersion $env:PHP_VERSION
+          Add-Content -Path $env:GITHUB_ENV -Value "PHP_FULL_VERSION=$($toolset.FullVersion)"
+          Add-Content -Path $env:GITHUB_ENV -Value "VC_VERSION=$($toolset.VcVersion)"
+          Add-Content -Path $env:GITHUB_ENV -Value "VS_VERSION=$($toolset.VsVersion)"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "full-version=$($toolset.FullVersion)"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "vc-version=$($toolset.VcVersion)"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "vs-version=$($toolset.VsVersion)"
+
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+          vsversion: ${{ steps.php-toolset.outputs.vs-version }}
+
+      - name: Install PHP SDK and toolchain
+        shell: pwsh
+        run: |
+          Import-Module "$env:GITHUB_WORKSPACE\.ci\windows-php.psm1"
+          InstallPhpSdk     $Env:PHP_SDK_VERSION $Env:VC_VERSION $Env:PLATFORM
+          InstallPhp        $Env:PHP_VERSION     $Env:BUILD_TYPE  $Env:VC_VERSION $Env:PLATFORM
+          InstallPhpDevPack $Env:PHP_VERSION     $Env:BUILD_TYPE  $Env:VC_VERSION $Env:PLATFORM
+
+      - name: Build and test
+        shell: pwsh
+        run: |
+          Import-Module "$env:GITHUB_WORKSPACE\.ci\windows-build.psm1"
+          InitializeBuildVars
+          $commands = @()
+
+          if ($env:VSDEVCMD) {
+            $commands += "call `"$env:VSDEVCMD`" -arch=$env:PLATFORM"
+          }
+
+          if ($env:VCVARSALL) {
+            $commands += "call `"$env:VCVARSALL`" $env:ARCH"
+          }
+
+          $commands += @("call C:\php-sdk\bin\phpsdk_setvars.bat",
+            "call C:\php-devpack\phpize.bat",
+            "call configure.bat --with-prefix=C:\php --with-php-build=C:\php-devpack --disable-all $env:ENABLE_EXT",
+            "call nmake",
+            "call nmake test"
+          )
+          cmd /c ($commands -join " && ")
+
+      - name: Upload logs on failure
+        if: failure()
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path . -Filter 'compile*.log' -File | ForEach-Object {
+            Write-Host "--- $($_.FullName)"; Get-Content $_
+          }
+          Get-ChildItem -Path . -Filter 'config*.log' -File | ForEach-Object {
+            Write-Host "--- $($_.FullName)"; Get-Content $_
+          }
+          Get-ChildItem -Path tests -Recurse -Filter '*.diff' -File | ForEach-Object {
+            Write-Host "--- $($_.FullName)"; Get-Content $_
+          }
