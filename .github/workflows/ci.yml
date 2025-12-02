@@ -53,7 +53,7 @@ jobs:
 
   windows:
     name: Windows PHP ${{ matrix.php-version }} (${{ matrix.build-type }})
-    runs-on: windows-2019
+    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
@@ -102,7 +102,6 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
-          vsversion: ${{ steps.php-toolset.outputs.vs-version }}
 
       - name: Install PHP SDK and toolchain
         shell: pwsh
