@@ -53,23 +53,29 @@ jobs:
 
   windows:
     name: Windows PHP ${{ matrix.php-version }} (${{ matrix.build-type }})
-    runs-on: windows-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - php-version: '8.3'
             build-type: 'nts-Win32'
+            runner: 'windows-2019'
           - php-version: '8.3'
             build-type: 'Win32'
+            runner: 'windows-2019'
           - php-version: '8.4'
             build-type: 'nts-Win32'
+            runner: 'windows-latest'
           - php-version: '8.4'
             build-type: 'Win32'
+            runner: 'windows-latest'
           - php-version: '8.5'
             build-type: 'nts-Win32'
+            runner: 'windows-latest'
           - php-version: '8.5'
             build-type: 'Win32'
+            runner: 'windows-latest'
     env:
       EXTNAME: skeleton
       PLATFORM: x64
@@ -102,6 +108,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
+          vsversion: ${{ steps.php-toolset.outputs.vs-version }}
 
       - name: Install PHP SDK and toolchain
         shell: pwsh
