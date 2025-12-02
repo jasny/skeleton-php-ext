@@ -18,9 +18,9 @@ jobs:
       fail-fast: false
       matrix:
         php-version:
-          - '8.1'
-          - '8.2'
           - '8.3'
+          - '8.4'
+          - '8.5'
           - 'nightly'
     continue-on-error: ${{ matrix.php-version == 'nightly' }}
 
@@ -58,17 +58,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php-version: '8.1'
-            build-type: 'nts-Win32'
-          - php-version: '8.1'
-            build-type: 'Win32'
-          - php-version: '8.2'
-            build-type: 'nts-Win32'
-          - php-version: '8.2'
-            build-type: 'Win32'
           - php-version: '8.3'
             build-type: 'nts-Win32'
           - php-version: '8.3'
+            build-type: 'Win32'
+          - php-version: '8.4'
+            build-type: 'nts-Win32'
+          - php-version: '8.4'
+            build-type: 'Win32'
+          - php-version: '8.5'
+            build-type: 'nts-Win32'
+          - php-version: '8.5'
             build-type: 'Win32'
     env:
       EXTNAME: skeleton
